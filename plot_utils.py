@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
-from bayes_opt import UtilityFunction
 
 
 # Functions to plot the Gaussian process and utility function
@@ -45,6 +44,7 @@ def plot_gp(optimizer, x, y):
     ax.grid()
     ax.legend(bbox_to_anchor=(1, 0.5))
     
+    from bayes_opt import UtilityFunction
     utility_function = UtilityFunction(kind="ucb", kappa=5, xi=0)
     utility = utility_function.utility(x, optimizer._gp, 0)
     

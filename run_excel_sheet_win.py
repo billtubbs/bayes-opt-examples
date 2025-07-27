@@ -23,7 +23,7 @@ def evaluate_excel_sheet(
         wb (win32com.gen_py.Workbook): An open Excel workbook.
         inputs (dict): values to be assigned to input variables.
             E.g. inputs = {'x': [0.0, 1.0]}
-        sheet (int): Sheet number.
+        sheet (int): Sheet number (1-based).
     
     Returns:
         outputs (dict): The cell values for all variables except the

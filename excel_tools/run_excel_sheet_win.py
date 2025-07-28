@@ -36,7 +36,7 @@ def evaluate_excel_sheet(
     and upper bounds on x, x_lb and x_ub, the Excel sheet could
     look something like this:
 
-         | A       B       C       D
+         | A       B       C       D        
     -----|----------------------------------
        1 |                                  
        2 |         name    My Problem       
@@ -59,12 +59,12 @@ def evaluate_excel_sheet(
 
     Notes:
 
-    The reason the name fields are included is that the algorithm 
-    checks that the text in the specified cells matches the variables 
+    The reason the name fields are included is that the algorithm
+    checks that the text in the specified cells matches the variables
     names to reduce the risk of referencing errors.
 
-    To avoid unnecessary re-calculation, set the Excel calculation 
-    option to 'manual'. Recalculation will be automatically triggered 
+    To avoid unnecessary re-calculation, set the Excel calculation
+    option to 'manual'. Recalculation will be automatically triggered
     when this function is called.
     """
 

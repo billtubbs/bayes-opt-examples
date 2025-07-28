@@ -1,15 +1,14 @@
-# Specialised plot functions for visualising Bayesian optimization
-# process when using the bayes_opt Python package.  Some of these
-# I wrote myself but posterior and plot_gp are adapted from
-# similar functions used in the example notebooks by Fernando 
-# Nogueira available at https://github.com/fmfn/BayesianOptimization
+"""Specialised plot functions for visualising Bayesian optimization
+process when using the bayes_opt Python package.  Some of these
+I wrote myself but posterior and plot_gp are adapted from
+similar functions used in the example notebooks by Fernando 
+Nogueira available at https://github.com/fmfn/BayesianOptimization.
+"""
 
 
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
 
 # Functions to plot the Gaussian process and utility function
@@ -19,6 +18,7 @@ def posterior(optimizer, x_obs, y_obs, grid):
 
     mu, sigma = optimizer._gp.predict(grid, return_std=True)
     return mu, sigma
+
 
 def plot_gp(optimizer, x, y):
     steps = len(optimizer.space)
@@ -50,8 +50,11 @@ def plot_gp(optimizer, x, y):
     
     ax = axes[1]
     ax.plot(x, utility, label='Utility function', color='purple')
-    ax.plot(x[np.argmax(utility)], np.max(utility), '*', markersize=15, 
-             label=u'Next best guess', markerfacecolor='gold', markeredgecolor='k', markeredgewidth=1)
+    ax.plot(
+        x[np.argmax(utility)], np.max(utility), '*', markersize=15,
+        label=u'Next best guess', markerfacecolor='gold',
+        markeredgecolor='k', markeredgewidth=1
+    )
     ax.set_ylim((0, np.max(utility) + 0.5))
     ax.set_ylabel('Utility')
     ax.set_xlabel('x')
@@ -95,7 +98,7 @@ def show_3d_surface_plot(X, Y, Z, zlim=(0, 100), title=None):
 
 def show_contour_plot(X, Y, Z, minima=None, fmt='%.0f',
                       txt_offset=(5, -3), title=None):
-    fig, ax = plt.subplots(figsize=(5,5))
+    fig, ax = plt.subplots(figsize=(5, 5))
     plt.contour(X, Y, Z)
     CS = ax.contour(X, Y, Z)
     ax.clabel(CS, inline=1, fmt=fmt, fontsize=10)
@@ -103,8 +106,9 @@ def show_contour_plot(X, Y, Z, minima=None, fmt='%.0f',
         # Show all the local minima as points
         for i, m in enumerate(minima):
             ax.plot(*m, 'ok')
-            ax.annotate(f'$m_{i}$', m, xytext=txt_offset,
-                        textcoords='offset points')
+            ax.annotate(
+                f'$m_{i}$', m, xytext=txt_offset, textcoords='offset points'
+            )
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     if title:
@@ -117,9 +121,11 @@ def show_contour_plot_with_pt(X, Y, Z, pt, minima=None, fmt='%.0f',
                               txt_offset=(5, -3), title=None):
     # Show a countour plot with an additional point to
     # indicate the current solution
-    ax = show_contour_plot(X, Y, Z, minima=minima, fmt=fmt,
-                      txt_offset=txt_offset, title=title)
+    ax = show_contour_plot(
+        X, Y, Z, minima=minima, fmt=fmt, txt_offset=txt_offset, title=title
+    )
     ax.plot(*pt, 'xr')
-    ax.annotate(f'pt', pt, xytext=txt_offset, color='r',
-                textcoords='offset points')
+    ax.annotate(
+        'pt', pt, xytext=txt_offset, color='r', textcoords='offset points'
+    )
     return ax

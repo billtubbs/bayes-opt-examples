@@ -29,7 +29,7 @@ def evaluate_excel_sheet(
         outputs (dict): The cell values for all variables except the
             input variable(s) after the sheet was recalculated.
 
-    Example
+    Example:
 
     To set up a function evaluation, f(x), that takes two inputs,
     x[0] and x[1], has a constraint function, g(x) <= 0, and lower
@@ -68,12 +68,22 @@ def evaluate_excel_sheet(
     when this function is called.
     """
 
+    # Get the worksheet
     ws = wb.Sheets(sheet)
 
     # Copy input variable values to specified cells
     for (var_name, values) in inputs.items():
         name_cell, value_cells = cell_refs[var_name]
-        assert ws.Range(name_cell).Value == var_name, "variable name mismatch"
+
+        # Check variable name matches
+        name_cell_value = ws.Range(name_cell).Value
+        msg = (
+            f"variable name mismatch: expected {var_name}, "
+            f"got {name_cell_value}"
+        )
+        assert name_cell_value == var_name, msg
+    
+        # Set values
         try:
             len(values)
         except TypeError:
@@ -139,7 +149,7 @@ def test_on_Toy1DProblem():
     outputs = evaluate_excel_sheet(
         excel, wb, inputs, cell_refs, output_vars=['name', 'x_lb', 'x_ub']
     )
-    print("Test: ", outputs['name'])
+    print("Test name: ", outputs['name'])
     assert outputs['name'] == 'Toy1DProblem'
     assert outputs['x_lb'] == -5
     assert outputs['x_ub'] == 5

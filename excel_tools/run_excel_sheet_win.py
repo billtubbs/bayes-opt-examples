@@ -137,6 +137,10 @@ def test_on_Toy1DProblem():
 
     file_path = os.path.join(os.getcwd(), excel_sheets_dir, filename)
 
+    # Check if file exists
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"Excel file not found: {file_path}")
+
     # Launch Excel
     excel = win32.gencache.EnsureDispatch('Excel.Application')
     excel.Visible = False  # Set to True if you want to see Excel open
@@ -144,42 +148,46 @@ def test_on_Toy1DProblem():
     # Open the workbook
     wb = excel.Workbooks.Open(file_path)
 
-    # Check the problem parameters
-    inputs = {'x': 0.0}
-    outputs = evaluate_excel_sheet(
-        excel, wb, inputs, cell_refs, output_vars=['name', 'x_lb', 'x_ub']
-    )
-    print("Test name: ", outputs['name'])
-    assert outputs['name'] == 'Toy1DProblem'
-    assert outputs['x_lb'] == -5
-    assert outputs['x_ub'] == 5
+    try:
+        # Check the problem parameters
+        inputs = {'x': 0.0}
+        outputs = evaluate_excel_sheet(
+            excel, wb, inputs, cell_refs, output_vars=['name', 'x_lb', 'x_ub']
+        )
+        print("Test name: ", outputs['name'])
+        assert outputs['name'] == 'Toy1DProblem'
+        assert outputs['x_lb'] == -5
+        assert outputs['x_ub'] == 5
 
-    x_values = np.linspace(-5, 5, 11)
-    f_eval = []
-    t0 = time.time()
-    timings = []
-    print("Evaluating excel sheet...")
-    for i, x in tqdm(enumerate(x_values)):
-        inputs = {'x': x}
-        outputs = evaluate_excel_sheet(excel, wb, inputs, cell_refs)
-        f_eval.append(outputs['f(x)'])
-        timings.append(time.time() - t0)
+        x_values = np.linspace(-5, 5, 11)
+        f_eval = []
+        t0 = time.time()
+        timings = []
+        print("Evaluating excel sheet...")
+        for i, x in tqdm(enumerate(x_values)):
+            inputs = {'x': x}
+            outputs = evaluate_excel_sheet(excel, wb, inputs, cell_refs)
+            f_eval.append(outputs['f(x)'])
+            timings.append(time.time() - t0)
 
-    # Save and close
-    wb.Save()
-    wb.Close()
-    excel.Quit()
+        # Print results and timings
+        results_summary = pd.DataFrame(
+            {'Time (seconds)': timings, 'x': x_values, 'f(x)': f_eval}
+        )
+        print(results_summary)
 
-    # Print results and timings
-    results_summary = pd.DataFrame(
-        {'Time (seconds)': timings, 'x': x_values, 'f(x)': f_eval}
-    )
-    print(results_summary)
+
+    finally:
+        # Save and close
+        wb.Save()
+        wb.Close()
+        excel.Quit()
+
 
 
 def test_on_Toy2DProblemConstraint():
 
-    # Path to your Excel file
+    # Path to Excel file
     excel_sheets_dir = "excel_sheets"
     filename = "Toy-2D-Problem-Constraint.xlsx"
     cell_refs = {
@@ -193,6 +201,10 @@ def test_on_Toy2DProblemConstraint():
 
     file_path = os.path.join(os.getcwd(), excel_sheets_dir, filename)
 
+    # Check if file exists
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"Excel file not found: {file_path}")
+
     # Launch Excel
     excel = win32.gencache.EnsureDispatch('Excel.Application')
     excel.Visible = False  # Set to True if you want to see Excel open
@@ -200,41 +212,43 @@ def test_on_Toy2DProblemConstraint():
     # Open the workbook
     wb = excel.Workbooks.Open(file_path)
 
-    # Check the problem parameters
-    inputs = {'x': [0.0, 0.0]}
-    outputs = evaluate_excel_sheet(
-        excel, wb, inputs, cell_refs, output_vars=['name', 'x_lb', 'x_ub']
-    )
-    print("Test: ", outputs['name'])
-    assert outputs['name'] == 'Toy2DProblemConstraint'
-    assert outputs['x_lb'] == [-5, -5]
-    assert outputs['x_ub'] == [5, 5]
-
-    x1_values = np.linspace(-5, 5, 11)
-    x2_values = np.linspace(-5, 5, 11)
-    n_iters = x1_values.shape[0] * x2_values.shape[0]
-    results = defaultdict(list)
-    t0 = time.time()
-    print("Evaluating excel sheet...")
-    for x1, x2 in tqdm(product(x1_values, x2_values), total=n_iters):
-        inputs = {'x': [x1, x2]}
+    try:
+        # Check the problem parameters
+        inputs = {'x': [0.0, 0.0]}
         outputs = evaluate_excel_sheet(
-            excel, wb, inputs, cell_refs, output_vars=['f(x)', 'g(x)']
+            excel, wb, inputs, cell_refs, output_vars=['name', 'x_lb', 'x_ub']
         )
-        results['x1'].append(x1)
-        results['x2'].append(x2)
-        results['f_eval'].append(outputs['f(x)'])
-        results['g_eval'].append(outputs['g(x)'])
-        results['timings'].append(time.time() - t0)
+        print("Test: ", outputs['name'])
+        assert outputs['name'] == 'Toy2DProblemConstraint'
+        assert outputs['x_lb'] == [-5, -5]
+        assert outputs['x_ub'] == [5, 5]
 
-    # Save and close
-    wb.Save()
-    wb.Close()
-    excel.Quit()
+        x1_values = np.linspace(-5, 5, 11)
+        x2_values = np.linspace(-5, 5, 11)
+        n_iters = x1_values.shape[0] * x2_values.shape[0]
+        results = defaultdict(list)
+        t0 = time.time()
+        print("Evaluating excel sheet...")
+        for x1, x2 in tqdm(product(x1_values, x2_values), total=n_iters):
+            inputs = {'x': [x1, x2]}
+            outputs = evaluate_excel_sheet(
+                excel, wb, inputs, cell_refs, output_vars=['f(x)', 'g(x)']
+            )
+            results['x1'].append(x1)
+            results['x2'].append(x2)
+            results['f_eval'].append(outputs['f(x)'])
+            results['g_eval'].append(outputs['g(x)'])
+            results['timings'].append(time.time() - t0)
+        
+        # Print results and timings
+        results_summary = pd.DataFrame(results)
+        print(results_summary)
 
-    # Print results and timings
-    results_summary = pd.DataFrame(results)
-    print(results_summary)
+    finally:
+        # Save and close
+        wb.Save()
+        wb.Close()
+        excel.Quit()
 
 
 if __name__ == "__main__":

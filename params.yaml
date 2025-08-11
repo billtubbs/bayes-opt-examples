@@ -1,0 +1,10 @@
+problems:
+  toy_1d_problem.Toy1DProblem
+  sys_id_fopdt.SysIdFOPDT
+optimizers:
+  lpfgopt.minimize: 
+    init_params:
+
+    call_params:
+
+  skopt.gp_minimize: 

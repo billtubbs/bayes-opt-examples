@@ -1,6 +1,7 @@
 import numpy as np
 from dataclasses import dataclass
 from collections import Counter
+from tqdm import tqdm
 
 
 @dataclass
@@ -76,10 +77,12 @@ def solve_problem_with_optimizer_n_repeats(
 
     solutions = []
     fun_evals = []
-    for i in range(n_repeats):
+    best_guesses = []
+    for i in tqdm(range(n_repeats)):
         problem.reset()
         sol = minimizer(problem, *args, **kwargs)
         solutions.append(tuple(round(float(xi), decimals) for xi in sol.x))
         fun_evals.append(np.array([f[0] for f in problem.guesses]))
+        best_guesses.append(problem.best_guess)
     unique_solutions = Counter(solutions)
-    return fun_evals, unique_solutions
+    return fun_evals, unique_solutions, best_guesses

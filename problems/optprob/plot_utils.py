@@ -1,14 +1,23 @@
+from itertools import accumulate
 import numpy as np
 import matplotlib.pyplot as plt
 
 
-def convergence_plot(problem, title=None):
+def function_evaluations_plot(
+    problem, title=None, marker='.', markersize=3, linestyle='', **kwargs
+):
     if title is None:
-        title = f'Optimizer Convergence - {problem.name}'
-    fevals = np.array([item[0] for item in problem.guesses])
+        title = f'Function Evaluations - {problem.name}'
+    f_evals = np.array([f for f, x in problem.guesses])
     fig = plt.figure(figsize=(7, 2.5))
     ax = fig.gca()
-    plt.semilogy(fevals, marker='.')
+    plt.semilogy(
+        f_evals,
+        marker=marker,
+        markersize=markersize,
+        linestyle=linestyle,
+        **kwargs
+    )
     plt.xlabel('Number of function evaluations')
     plt.ylabel('f(x)')
     plt.grid()
@@ -16,11 +25,45 @@ def convergence_plot(problem, title=None):
     return ax
 
 
-def convergence_plot_n_repeats(
-    fun_evals, title=None, marker='auto', color='tab:blue', alpha=0.25
+def best_guesses_plot(
+    problem, title=None, marker='', linestyle='-', **kwargs
 ):
+    if title is None:
+        title = f'Best Guesses - {problem.name}'
+    best_guesses = np.fromiter(
+        accumulate([f for f, x in problem.guesses], min),
+        dtype='float'
+    )
+    fig = plt.figure(figsize=(7, 2.5))
+    ax = fig.gca()
+    plt.semilogy(
+        best_guesses,
+        marker=marker,
+        linestyle=linestyle,
+        drawstyle='steps-post',
+        **kwargs
+    )
+    plt.xlabel('Number of function evaluations')
+    plt.ylabel('f(x) best guess')
+    plt.grid()
+    plt.title(title)
+    return ax
 
+
+def best_guesses_plot_n_repeats(
+    fun_evals,
+    color='tab:blue',
+    alpha=0.25,
+    best_guesses=True,
+    title=None
+):
     n_repeats = len(fun_evals)
+
+    if best_guesses:
+        fun_evals = [
+            np.fromiter(accumulate(f, min), dtype='float')
+            for f in fun_evals
+        ]
 
     if title is None:
         title = f'Optimizer Convergence - {n_repeats} Iterations'
@@ -45,14 +88,25 @@ def convergence_plot_n_repeats(
     ax = fig.gca()
 
     # Plot the median line
-    if marker == 'auto':
-        marker = '.' if max_len < 20 else None
     x = np.arange(max_len)
-    ax.semilogy(x, median_vals, marker=marker, color=color, label='Median')
+    ax.semilogy(
+        x,
+        median_vals,
+        marker='',
+        linestyle='-',
+        color=color,
+        drawstyle='steps-post',
+        label='Median',
+    )
 
     # Fill between min and max
     ax.fill_between(
-        x, min_vals, max_vals, alpha=alpha, color=color, label='Min-Max Range'
+        x,
+        min_vals,
+        max_vals,
+        alpha=alpha,
+        color=color,
+        label='Min-Max Range'
     )
 
     plt.xlabel('Number of function evaluations')

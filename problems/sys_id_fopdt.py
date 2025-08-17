@@ -30,12 +30,12 @@ def make_simulate_function(dt, u_data):
 
     @nb.njit
     def simulate(
-        K: float, 
-        tau: float, 
-        n_delay: int, 
+        K: float,
+        tau: float,
+        n_delay: int,
         y_base: float,
-        u_base: float, 
-        y_init: float 
+        u_base: float,
+        y_init: float
     ) -> np.ndarray:
         alpha_comp = np.exp(-dt / tau)
         alpha = 1.0 - alpha_comp
@@ -50,30 +50,38 @@ def make_simulate_function(dt, u_data):
     return simulate
 
 
-def prediction_error(y_model, y_data):
-    ssd = np.sum((y_model - y_data) ** 2)
+def rms_prediction_error(y_model, y_data):
+    ssd = np.mean((y_model - y_data) ** 2)
     return ssd
 
 
 class SysIdFOPDT(ConstrainedScalarOptimizationProblem):
 
-    def __init__(self, bounds, dt, u_data, y_data):
+    def __init__(self, bounds, dt, u_data, y_data, u_base=5.0):
         name = "SysIdFOPDT"
-        super().__init__(bounds, name=name, global_minimum=[4607.5])
+        super().__init__(bounds, name=name, global_minimum=[5.043253488260278])
         self.u_data = u_data
         self.y_data = y_data
         self.simulate = make_simulate_function(dt, u_data)
+        self.params = {'u_base': u_base}
 
-    def cost_function_to_minimize(self, x) -> float:
-        K, tau, n_delay, y_base, u_base, y_init = x
+    def cost_function_to_minimize(self, x, u_base=None) -> float:
+        K, tau, n_delay, y_base, y_init = x
         assert isinstance(x[2], (int, np.integer))
+        if u_base is None:
+            u_base = self.params['u_base']
         y_model = self.simulate(K, tau, n_delay, y_base, u_base, y_init)
-        ssd = prediction_error(y_model[n_delay+1:], self.y_data[n_delay+1:])
-        return ssd
+        rms_error = rms_prediction_error(
+            y_model[n_delay+1:],
+            self.y_data[n_delay+1:]
+        )
+        return rms_error
 
-    def calculate_y_model(self, x):
-        K, tau, n_delay, y_base, u_base, y_init = x
+    def calculate_y_model(self, x, u_base=None):
+        K, tau, n_delay, y_base, y_init = x
         assert isinstance(x[2], (int, np.integer))
+        if u_base is None:
+            u_base = self.params['u_base']
         y_model = self.simulate(K, tau, n_delay, y_base, u_base, y_init)
         return y_model
 
@@ -95,12 +103,10 @@ def calculate_reasonable_bounds(t, u_data, y_data):
         'tau': (dt, time_span / 3),                              # Time constant
         'n_delay': (0, int(round(time_span / 10 / dt))),         # Time delays
         'y_base': (y_mean - 2 * y_range, y_mean + 2 * y_range),  # Output baseline
-        'u_base': (u_mean - 2 * u_range, u_mean + 2 * u_range),  # Input baseline
         'y_init': (                                              # Initial output
             y_data[0] - y_range, 
             y_data[0] + y_range
-        ),
-        #'mystery_del_t': (-0.1, 0.1)                             # Empirical correction
+        )
     }
     return bounds
 
@@ -111,7 +117,9 @@ data_dir = 'data'
 filename = 'io_data_fopdt.csv'
 input_output_data = pd.read_csv(os.path.join(data_dir, filename))
 assert input_output_data.shape == (881, 4)
-assert input_output_data.columns.tolist() == ['Output', 'Time', 'Input1', 'Input2']
+assert input_output_data.columns.tolist() == [
+    'Output', 'Time', 'Input1', 'Input2'
+]
 
 # Prepare input-output data
 input_col = 'Input1'
@@ -140,11 +148,9 @@ assert y_model.shape == u_data.shape
 assert np.all(np.isnan(y_model[:n_delay+1]))
 assert np.all(~np.isnan(y_model[n_delay+1:]))
 
-err = prediction_error(y_model[n_delay+1:], y_data[n_delay+1:])
-assert np.isclose(err, 27352.792889210206)
+err = rms_prediction_error(y_model[n_delay+1:], y_data[n_delay+1:])
+assert np.isclose(err, 31.153522652859007)
 
 bounds = calculate_reasonable_bounds(t, u_data, y_data)
 var_names = list(bounds.keys())
 bounds = list(bounds.values())
-
-breakpoint()

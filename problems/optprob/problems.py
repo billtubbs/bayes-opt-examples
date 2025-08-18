@@ -48,7 +48,8 @@ class ConstrainedScalarOptimizationProblem():
 
     @property
     def best_guess(self) -> tuple:
-        return min(self._guesses)
+        i_best = np.argmin([item[0] for item in self._guesses])
+        return self._guesses[i_best]
 
     @staticmethod
     def cost_function_to_minimize(x, *args) -> float:
